@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Cookie Clicker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        #game-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        
+        #cookie {
+            width: 200px;
+            height: 200px;
+            cursor: pointer;
+            transition: transform 0.1s;
+            margin: 20px auto;
+        }
+        
+        #cookie:hover {
+            transform: scale(1.05);
+        }
+        
+        #cookie:active {
+            transform: scale(0.95);
+        }
+        
+        #counter {
+            font-size: 24px;
+            margin: 20px 0;
+        }
+        
+        #upgrades {
+            margin-top: 20px;
+            text-align: left;
+        }
+        
+        .upgrade {
+            padding: 10px;
+            margin: 5px 0;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        .upgrade:hover {
+            background-color: #e0e0e0;
+        }
+        
+        .upgrade:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <h1>Cookie Clicker</h1>
+        <div id="counter">Cookies: 0</div>
+        <img id="cookie" src="https://cdn.pixabay.com/photo/2014/04/03/00/41/cookie-309171_960_720.png" alt="Cookie">
+        <div id="upgrades">
+            <h2>Upgrades</h2>
+            <button class="upgrade" onclick="buyUpgrade('cursor', 10, 0.1)">Buy Cursor (10 cookies) - +0.1 cookies/sec</button>
+            <button class="upgrade" onclick="buyUpgrade('grandma', 50, 1)">Buy Grandma (50 cookies) - +1 cookie/sec</button>
+            <button class="upgrade" onclick="buyUpgrade('farm', 200, 5)">Buy Farm (200 cookies) - +5 cookies/sec</button>
+        </div>
+    </div>
+
+    <script>
+        // Game variables
+        let cookies = 0;
+        let cookiesPerSecond = 0;
+        let upgrades = {
+            cursor: { owned: 0, cost: 10, cps: 0.1 },
+            grandma: { owned: 0, cost: 50, cps: 1 },
+            farm: { owned: 0, cost: 200, cps: 5 }
+        };
+
+        // DOM elements
+        const cookieElement = document.getElementById('cookie');
+        const counterElement = document.getElementById('counter');
+        const upgradeButtons = document.querySelectorAll('.upgrade');
+
+        // Cookie click event
+        cookieElement.addEventListener('click', () => {
+            cookies++;
+            updateCounter();
+        });
+
+        // Game loop for passive income
+        setInterval(() => {
+            cookies += cookiesPerSecond / 10; // Update 10 times per second for smoother progress
+            updateCounter();
+        }, 100);
+
+        // Update the counter display
+        function updateCounter() {
+            counterElement.textContent = `Cookies: ${Math.floor(cookies)} (${cookiesPerSecond.toFixed(1)}/sec)`;
+            
+            // Update upgrade button states
+            upgradeButtons.forEach(button => {
+                const upgradeType = button.getAttribute('onclick').match(/'([^']+)'/)[1];
+                const upgrade = upgrades[upgradeType];
+                button.disabled = cookies < upgrade.cost;
+                button.textContent = `Buy ${upgradeType.charAt(0).toUpperCase() + upgradeType.slice(1)} (${upgrade.cost} cookies) - +${upgrade.cps} cookies/sec (Owned: ${upgrade.owned})`;
+            });
+        }
+
+        // Buy upgrade function
+        function buyUpgrade(type, cost, cps) {
+            const upgrade = upgrades[type];
+            
+            if (cookies >= upgrade.cost) {
+                cookies -= upgrade.cost;
+                upgrade.owned++;
+                cookiesPerSecond += upgrade.cps;
+                
+                // Increase cost for next purchase (simple inflation)
+                upgrade.cost = Math.floor(upgrade.cost * 1.15);
+                
+                updateCounter();
+            }
+        }
+    </script>
+</body>
+</html>
